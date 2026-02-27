@@ -1,26 +1,59 @@
 @import "tailwindcss";
 
+@theme {
+  --color-obsidian: #0B0B0B;
+  --color-slate-gray: #2D2D2D;
+  --color-pure-white: #FFFFFF;
+  --color-dim-gray: #1A1A1A;
+  --color-border-subtle: #333333;
+  
+  --font-jetbrains-mono: var(--font-jetbrains-mono);
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --background: #0B0B0B;
+  --foreground: #FFFFFF;
 }
 
 body {
-  background: var(--background);
+  background-color: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-jetbrains-mono), monospace;
+  cursor: crosshair;
+}
+
+@layer base {
+  * {
+    @apply border-border-subtle;
+  }
+}
+
+/* Prose styles for Markdown */
+.prose h1 { @apply text-3xl font-bold mb-6 mt-12 uppercase tracking-tighter; }
+.prose h2 { @apply text-2xl font-bold mb-4 mt-10 uppercase tracking-tight border-b border-slate-gray/30 pb-2; }
+.prose h3 { @apply text-xl font-bold mb-3 mt-8 uppercase tracking-wide; }
+.prose p { @apply mb-6 leading-relaxed text-pure-white/70; }
+.prose ul { @apply list-disc list-inside mb-6 space-y-2 text-pure-white/70; }
+.prose ol { @apply list-decimal list-inside mb-6 space-y-2 text-pure-white/70; }
+.prose li { @apply ml-4; }
+.prose blockquote { @apply border-l-2 border-slate-gray pl-6 italic my-8 text-pure-white/50; }
+.prose code { @apply bg-dim-gray px-1.5 py-0.5 rounded text-sm font-mono text-pure-white/90; }
+.prose pre { @apply bg-dim-gray p-6 rounded-lg border border-slate-gray/30 overflow-x-auto my-8; }
+.prose pre code { @apply bg-transparent p-0; }
+.prose a { @apply text-pure-white underline underline-offset-4 hover:text-slate-gray transition-colors; }
+.prose strong { @apply text-pure-white font-bold; }
+.prose img { @apply rounded-lg border border-slate-gray/30 my-8; }
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 5px;
+}
+::-webkit-scrollbar-track {
+  background: #0B0B0B;
+}
+::-webkit-scrollbar-thumb {
+  background: #2D2D2D;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #333333;
 }
