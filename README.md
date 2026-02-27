@@ -29,8 +29,8 @@ A high-performance, minimalist personal portfolio and blog built with **Next.js 
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/Selkie-the-goat/neeksonshresthacomnp.git
-   cd neeksonshresthacomnp
+   git clone https://github.com/Selkie-the-goat/website.git
+   cd website
    ```
 
 2. Install dependencies:
