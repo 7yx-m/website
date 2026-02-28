@@ -1,0 +1,7 @@
+name = "website"
+compatibility_date = "2024-04-03"
+compatibility_flags = ["nodejs_compat"]
+
+[pages_build_config]
+build_command = "npm run build"
+destination_dir = "out"
