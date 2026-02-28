@@ -5,8 +5,6 @@ import Link from "next/link";
 import { ArrowLeft, Calendar, Clock, Terminal } from "lucide-react";
 import { notFound } from "next/navigation";
 
-export const dynamicParams = false;
-
 export function generateStaticParams() {
   const slugs = getPostSlugs();
   return slugs.map((slug) => ({
