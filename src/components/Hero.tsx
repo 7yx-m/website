@@ -5,8 +5,8 @@ import { useEffect, useState } from "react";
 
 const achievements = [
   "#1 Ranked on Codeforces in Nepal",
-  "National AI Olympiad Finalist",
-  "Mathematics/CS Specialist",
+  "National AI Olympiad Honorable Mention",
+  "Mathematics/CS Enthusiast",
   "Gandaki Boarding School Alum",
 ];
 
