@@ -14,8 +14,8 @@ const education = [
   {
     institution: "Gandaki Boarding School",
     degree: "High School Specialist",
-    grade: "Predicted GPA: 3.4-3.6",
-    status: "Completed",
+    grade: "Predicted GPA: A/A+",
+    status: "Ongoing",
   },
 ];
 
