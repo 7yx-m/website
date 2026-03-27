@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 
 const achievements = [
-  "#1 Ranked on Codeforces in Nepal",
+  "Competitive Programmer",
   "National AI Olympiad Honorable Mention",
   "Mathematics/CS Enthusiast",
   "Gandaki Boarding School Alum",
