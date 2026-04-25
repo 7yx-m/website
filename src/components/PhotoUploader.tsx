@@ -38,6 +38,7 @@ export const PhotoUploader = ({ onClose, onSuccess }: PhotoUploaderProps) => {
 
       const res = await fetch('/api/admin/photo', {
         method: 'POST',
+        credentials: 'same-origin',
         body: formData,
       });
 

@@ -30,6 +30,7 @@ export const BlogEditor = ({ onClose, onSuccess }: BlogEditorProps) => {
       const res = await fetch('/api/admin/blog', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
         body: JSON.stringify({ title, excerpt, content, readTime }),
       });
 
