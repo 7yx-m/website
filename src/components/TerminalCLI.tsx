@@ -232,11 +232,11 @@ export const TerminalCLI = () => {
                   <span className="text-pure-white">➜</span>
                   <input
                     ref={inputRef}
-                    type="text"
+                    type={isAuthenticating ? "password" : "text"}
                     value={input}
                     onChange={handleInputChange}
                     className="flex-1 bg-transparent border-none outline-none text-pure-white caret-pure-white placeholder:text-pure-white/10"
-                    placeholder="EXECUTE COMMAND..."
+                    placeholder={isAuthenticating ? "ENTER PASSWORD..." : "EXECUTE COMMAND..."}
                     autoFocus
                   />
                 </form>
