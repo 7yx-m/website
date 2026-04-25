@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createToken, verifyToken } from '../../../../lib/auth';
+import { getSignature, verifySession } from '@/lib/auth';
 
 export const runtime = 'edge';
 
@@ -11,13 +11,16 @@ export async function POST(req: NextRequest) {
     const { password } = body;
 
     if (password === ADMIN_PASSWORD) {
-      const token = await createToken({ admin: true }, ADMIN_PASSWORD);
+      const expiry = Date.now() + 86400000; // 24 hours
+      const sig = await getSignature(expiry.toString());
+      const sessionValue = `${expiry}:${sig}`;
+
       const response = NextResponse.json({ success: true });
       
-      response.cookies.set('admin_session', token, {
+      response.cookies.set('admin_session', sessionValue, {
         httpOnly: true,
         secure: true,
-        sameSite: 'strict',
+        sameSite: 'lax',
         maxAge: 60 * 60 * 24,
         path: '/',
       });
@@ -36,11 +39,9 @@ export async function POST(req: NextRequest) {
 
 export async function GET(req: NextRequest) {
   try {
-    const token = req.cookies.get('admin_session')?.value;
-    if (await verifyToken(token, ADMIN_PASSWORD)) {
-      return NextResponse.json({ authenticated: true });
-    }
-    return NextResponse.json({ authenticated: false });
+    const session = req.cookies.get('admin_session')?.value;
+    const isValid = await verifySession(session);
+    return NextResponse.json({ authenticated: isValid });
   } catch (e) {
     return NextResponse.json({ authenticated: false });
   }
