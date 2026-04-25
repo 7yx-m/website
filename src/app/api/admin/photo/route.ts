@@ -22,8 +22,10 @@ export async function POST(req: NextRequest) {
     const REPO_OWNER = "Selkie-the-goat";
     const REPO_NAME = "website";
 
-    // 2. Prepare the filename
-    const filename = `${Date.now()}-${file.name.replace(/\s+/g, '-').toLowerCase()}`;
+    // 2. Prepare the filename based on title
+    const slug = title.toLowerCase().trim().replace(/[^\w\s-]/g, '').replace(/[\s_-]+/g, '-').replace(/^-+|-+$/g, '');
+    const extension = file.name.split('.').pop() || 'jpg';
+    const filename = `${slug}.${extension}`;
     const imagePath = `public/images/${filename}`;
     
     // 3. Convert file to Base64

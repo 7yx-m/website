@@ -16,10 +16,12 @@ const BOOT_LOGS = [
 export const BootScreen = () => {
   const [logs, setLogs] = useState<string[]>([]);
   const [isFinished, setIsFinished] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    // Skip boot if already seen
-    if (localStorage.getItem("booted")) {
+    setMounted(true);
+    // Use sessionStorage instead of localStorage so it shows once per session/tab
+    if (sessionStorage.getItem("booted")) {
       setIsFinished(true);
       return;
     }
@@ -33,15 +35,15 @@ export const BootScreen = () => {
         clearInterval(interval);
         setTimeout(() => {
           setIsFinished(true);
-          localStorage.setItem("booted", "true");
+          sessionStorage.setItem("booted", "true");
         }, 500);
       }
-    }, 120);
+    }, 150);
 
     return () => clearInterval(interval);
   }, []);
 
-  if (isFinished) return null;
+  if (!mounted || isFinished) return null;
 
   return (
     <motion.div 

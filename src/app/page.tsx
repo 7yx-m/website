@@ -7,13 +7,16 @@ import { Navigation } from "@/components/Navigation";
 import { TerminalCLI } from "@/components/TerminalCLI";
 import { BootScreen } from "@/components/BootScreen";
 import { getAllPosts } from "@/lib/markdown";
+import { AnimatePresence } from "framer-motion";
 
 export default function Home() {
   const posts = getAllPosts();
 
   return (
     <main className="relative">
-      <BootScreen />
+      <AnimatePresence mode="wait">
+        <BootScreen />
+      </AnimatePresence>
       <TerminalCLI />
       {/* Background Grid Pattern */}
       <div className="fixed inset-0 pointer-events-none opacity-[0.03] z-0 overflow-hidden">
