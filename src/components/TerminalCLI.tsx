@@ -40,7 +40,7 @@ export const TerminalCLI = () => {
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    fetch('/api/auth')
+    fetch('/api/auth/')
       .then(res => res.json())
       .then(data => {
         if (data.authenticated) {
@@ -89,22 +89,26 @@ export const TerminalCLI = () => {
     
     if (isAuthenticating) {
       try {
-        const res = await fetch('/api/auth', {
+        const res = await fetch('/api/auth/', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ password: rawInput }),
         });
         
-        const data = await res.json();
-
-        if (res.ok) {
-          setIsAdmin(true);
-          setHistory(prev => [...prev, '******', 'ACCESS GRANTED. WELCOME ADMIN.', 'Type "newpost" or "uploadphoto" to manage content.']);
+        const contentType = res.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+          const data = await res.json();
+          if (res.ok) {
+            setIsAdmin(true);
+            setHistory(prev => [...prev, '******', 'ACCESS GRANTED. WELCOME ADMIN.', 'Type "newpost" or "uploadphoto" to manage content.']);
+          } else {
+            setHistory(prev => [...prev, '******', `ERROR: ${data.error || 'UNSPECIFIED_FAILURE'}`]);
+          }
         } else {
-          setHistory(prev => [...prev, '******', `ERROR: ${data.error || 'UNSPECIFIED_FAILURE'}`]);
+          setHistory(prev => [...prev, '******', `ERROR: SERVER_ERROR // STATUS: ${res.status}`]);
         }
       } catch (err) {
-        setHistory(prev => [...prev, '******', 'ERROR: CONNECTION_FAILED // API_UNREACHABLE']);
+        setHistory(prev => [...prev, '******', 'ERROR: NETWORK_FAILURE // API_UNREACHABLE']);
       } finally {
         setIsAuthenticating(false);
         setInput('');
@@ -115,7 +119,7 @@ export const TerminalCLI = () => {
     if (cmd === '') return;
 
     if (cmd === 'analytics') {
-      const res = await fetch('/api/analytics');
+      const res = await fetch('/api/analytics/');
       const data = await res.json();
       const stats = Object.entries(data).map(([k, v]) => `${k.toUpperCase()}: ${v} PINGS`).join('\n');
       setHistory(prev => [...prev, '> analytics', '--- SYSTEM TRAFFIC ---', stats, '--- END LOG ---']);
@@ -124,7 +128,7 @@ export const TerminalCLI = () => {
     }
 
     if (cmd === 'status') {
-      const res = await fetch('/api/analytics');
+      const res = await fetch('/api/analytics/');
       const data = await res.json();
       setHistory(prev => [...prev, '> status', `SYSTEM: STABLE // TOTAL_TRAFFIC: ${data.total || 0} // LATENCY: 12ms`]);
       setInput('');
@@ -139,7 +143,7 @@ export const TerminalCLI = () => {
     }
 
     if (cmd === 'logout') {
-      await fetch('/api/auth', { method: 'DELETE' });
+      await fetch('/api/auth/', { method: 'DELETE' });
       setIsAdmin(false);
       setHistory(prev => [...prev, '> logout', 'ADMIN SESSION TERMINATED.']);
       setInput('');
