@@ -1,19 +1,28 @@
-import { Buffer } from 'buffer';
-
 /**
  * Secure JWT verification using Web Crypto API (Native to Cloudflare Edge)
+ * Extremely minimal implementation to avoid dependency issues.
  */
 
-const base64UrlEncode = (arr: Uint8Array) => {
-  return Buffer.from(arr).toString('base64')
+const uint8ArrayToBase64Url = (arr: Uint8Array) => {
+  let bin = '';
+  for (let i = 0; i < arr.byteLength; i++) {
+    bin += String.fromCharCode(arr[i]);
+  }
+  return btoa(bin)
     .replace(/\+/g, '-')
     .replace(/\//g, '_')
     .replace(/=+$/, '');
 };
 
-const base64UrlDecode = (str: string) => {
+const base64UrlToUint8Array = (str: string) => {
   str = str.replace(/-/g, '+').replace(/_/g, '/');
-  return new Uint8Array(Buffer.from(str, 'base64'));
+  while (str.length % 4) str += '=';
+  const bin = atob(str);
+  const arr = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) {
+    arr[i] = bin.charCodeAt(i);
+  }
+  return arr;
 };
 
 export const getSecretKey = async (secret: string) => {
@@ -28,26 +37,22 @@ export const getSecretKey = async (secret: string) => {
 };
 
 export const createToken = async (payload: any, secret: string) => {
-  try {
-    const header = { alg: 'HS256', typ: 'JWT' };
-    const headerStr = base64UrlEncode(new TextEncoder().encode(JSON.stringify(header)));
-    const payloadStr = base64UrlEncode(new TextEncoder().encode(JSON.stringify({
-      ...payload,
-      exp: Math.floor(Date.now() / 1000) + (60 * 60 * 24) // 24 hours
-    })));
+  const header = { alg: 'HS256', typ: 'JWT' };
+  const headerStr = uint8ArrayToBase64Url(new TextEncoder().encode(JSON.stringify(header)));
+  const payloadStr = uint8ArrayToBase64Url(new TextEncoder().encode(JSON.stringify({
+    ...payload,
+    exp: Math.floor(Date.now() / 1000) + (60 * 60 * 24)
+  })));
 
-    const key = await getSecretKey(secret);
-    const signatureBuffer = await crypto.subtle.sign(
-      'HMAC',
-      key,
-      new TextEncoder().encode(`${headerStr}.${payloadStr}`)
-    );
-    
-    const signatureStr = base64UrlEncode(new Uint8Array(signatureBuffer));
-    return `${headerStr}.${payloadStr}.${signatureStr}`;
-  } catch (e) {
-    throw new Error(`Token creation failed: ${e instanceof Error ? e.message : String(e)}`);
-  }
+  const key = await getSecretKey(secret);
+  const signatureBuffer = await crypto.subtle.sign(
+    'HMAC',
+    key,
+    new TextEncoder().encode(`${headerStr}.${payloadStr}`)
+  );
+  
+  const signatureStr = uint8ArrayToBase64Url(new Uint8Array(signatureBuffer));
+  return `${headerStr}.${payloadStr}.${signatureStr}`;
 };
 
 export const verifyToken = async (token: string | undefined, secret: string | undefined) => {
@@ -59,7 +64,7 @@ export const verifyToken = async (token: string | undefined, secret: string | un
     
     const [headerStr, payloadStr, signatureStr] = parts;
     const key = await getSecretKey(secret);
-    const signature = base64UrlDecode(signatureStr);
+    const signature = base64UrlToUint8Array(signatureStr);
     
     const isValid = await crypto.subtle.verify(
       'HMAC',
@@ -70,11 +75,9 @@ export const verifyToken = async (token: string | undefined, secret: string | un
     
     if (!isValid) return false;
     
-    const payloadJson = Buffer.from(base64UrlDecode(payloadStr)).toString();
-    const payload = JSON.parse(payloadJson);
+    const payload = JSON.parse(new TextDecoder().decode(base64UrlToUint8Array(payloadStr)));
     return payload.exp > Math.floor(Date.now() / 1000);
   } catch (e) {
-    console.error('JWT Verification Error:', e);
     return false;
   }
 };

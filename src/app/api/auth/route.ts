@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createToken, verifyToken } from '@/lib/auth';
+import { createToken, verifyToken } from '../../../../lib/auth';
 
 export const runtime = 'edge';
 
-// Hardcoded for project-specific simplified access (as requested)
 const ADMIN_PASSWORD = "neekson2-65";
 
 export async function POST(req: NextRequest) {
@@ -17,7 +16,7 @@ export async function POST(req: NextRequest) {
       
       response.cookies.set('admin_session', token, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
+        secure: true,
         sameSite: 'strict',
         maxAge: 60 * 60 * 24,
         path: '/',
@@ -27,10 +26,10 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json({ error: 'INVALID_KEY' }, { status: 401 });
-  } catch (e) {
+  } catch (e: any) {
     return NextResponse.json({ 
       error: 'AUTH_FAILED', 
-      details: e instanceof Error ? e.message : String(e) 
+      details: e?.message || String(e) 
     }, { status: 500 });
   }
 }
@@ -38,11 +37,9 @@ export async function POST(req: NextRequest) {
 export async function GET(req: NextRequest) {
   try {
     const token = req.cookies.get('admin_session')?.value;
-
     if (await verifyToken(token, ADMIN_PASSWORD)) {
       return NextResponse.json({ authenticated: true });
     }
-    
     return NextResponse.json({ authenticated: false });
   } catch (e) {
     return NextResponse.json({ authenticated: false });
