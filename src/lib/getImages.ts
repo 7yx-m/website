@@ -15,7 +15,7 @@ export function getImagesFromPublic(subfolder = 'images'): PhotoMeta[] {
 
   return fs
     .readdirSync(dir)
-    .filter((file) => IMAGE_EXTENSIONS.includes(path.extname(file).toLowerCase()))
+    .filter((file) => IMAGE_EXTENSIONS.includes(path.extname(file).toLowerCase()) && !file.toLowerCase().startsWith('profile.'))
     .map((file) => ({
       src: `/${subfolder}/${file}`,
       alt: path.basename(file, path.extname(file)).replace(/[-_]/g, ' '),
