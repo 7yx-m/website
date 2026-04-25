@@ -90,11 +90,14 @@ export const TerminalCLI = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ password: rawInput }),
       });
+      
+      const data = await res.json();
+
       if (res.ok) {
         setIsAdmin(true);
         setHistory(prev => [...prev, '******', 'ACCESS GRANTED. WELCOME ADMIN.', 'Type "newpost" or "uploadphoto" to manage content.']);
       } else {
-        setHistory(prev => [...prev, '******', 'ACCESS DENIED: INVALID KEY.']);
+        setHistory(prev => [...prev, '******', `ERROR: ${data.error || 'UNSPECIFIED_FAILURE'}`]);
       }
       setIsAuthenticating(false);
       setInput('');

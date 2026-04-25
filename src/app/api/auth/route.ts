@@ -6,34 +6,33 @@ export async function POST(req: NextRequest) {
   try {
     const { password } = await req.json();
     
-    // In production, this should be an environment variable
-    const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+    // Cloudflare Pages specific: check process.env AND potentially global env
+    const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || (globalThis as any).ADMIN_PASSWORD;
 
     if (!ADMIN_PASSWORD) {
       return NextResponse.json(
-        { error: 'Server configuration error: ADMIN_PASSWORD not set.' },
+        { error: 'CONFIG_ERROR: ADMIN_PASSWORD_NOT_SET' },
         { status: 500 }
       );
     }
 
     if (password === ADMIN_PASSWORD) {
-      const response = NextResponse.json({ success: true, message: 'Authenticated successfully.' });
+      const response = NextResponse.json({ success: true });
       
-      // Set a secure, HTTP-only cookie
       response.cookies.set('admin_session', 'true', {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
+        secure: true,
         sameSite: 'strict',
-        maxAge: 60 * 60 * 24, // 24 hours
+        maxAge: 60 * 60 * 24,
         path: '/',
       });
 
       return response;
     }
 
-    return NextResponse.json({ error: 'Invalid credentials.' }, { status: 401 });
+    return NextResponse.json({ error: 'AUTH_ERROR: INVALID_KEY' }, { status: 401 });
   } catch (e) {
-    return NextResponse.json({ error: 'Invalid request.' }, { status: 400 });
+    return NextResponse.json({ error: 'SYSTEM_ERROR: INVALID_REQUEST' }, { status: 400 });
   }
 }
 
