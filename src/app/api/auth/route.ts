@@ -6,7 +6,7 @@ const ADMIN_PASSWORD = "neekson2-65";
 
 export async function POST(req: NextRequest) {
   try {
-    let body = {};
+    let body: any = {};
     try {
       body = await req.json();
     } catch (parseErr) {
@@ -61,12 +61,6 @@ export async function GET(req: NextRequest) {
   } catch (e) {
     return NextResponse.json({ authenticated: false });
   }
-}
-
-export async function DELETE() {
-  const response = NextResponse.json({ success: true });
-  response.cookies.delete('admin_session');
-  return response;
 }
 
 export async function DELETE() {
