@@ -199,7 +199,7 @@ export const TerminalCLI = () => {
           <span className="text-pure-white animate-pulse">🔑</span>
           <input
             ref={inputRef}
-            type="password"
+            type="text"
             value={input}
             onChange={handleInputChange}
             className="flex-1 bg-transparent border-none outline-none text-pure-white caret-pure-white"
