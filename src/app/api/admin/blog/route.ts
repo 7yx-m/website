@@ -14,33 +14,40 @@ function isAuthenticated(req: NextRequest): boolean {
   return Date.now() <= expiry;
 }
 
+function generateSlug(title: string): string {
+  return title
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '')   // remove special chars
+    .trim()
+    .replace(/\s+/g, '-')            // spaces to hyphens
+    .replace(/-+/g, '-');            // collapse multiple hyphens
+}
+
 export async function POST(req: NextRequest) {
-  // 1. Check session cookie
   if (!isAuthenticated(req)) {
     return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
   }
 
-  // 2. Check GitHub token is configured
   if (!GITHUB_TOKEN) {
     return NextResponse.json({ error: 'SERVER_MISCONFIGURED', details: 'GITHUB_TOKEN not set' }, { status: 500 });
   }
 
-  // 3. Parse request body
-  let body: { title?: string; slug?: string; content?: string; excerpt?: string; readTime?: string; date?: string } = {};
+  let body: { title?: string; excerpt?: string; content?: string; readTime?: string; date?: string } = {};
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: 'PARSE_ERROR', details: 'Could not parse JSON body' }, { status: 400 });
   }
 
-  const { title, slug, content, excerpt, readTime, date } = body;
+  const { title, excerpt, content, readTime, date } = body;
 
-  if (!title || !slug || !content) {
-    return NextResponse.json({ error: 'MISSING_FIELDS', details: 'title, slug, and content are required' }, { status: 400 });
+  if (!title || !content) {
+    return NextResponse.json({ error: 'MISSING_FIELDS', details: 'title and content are required' }, { status: 400 });
   }
 
-  // 4. Build the markdown file with frontmatter
+  const slug = generateSlug(title);
   const postDate = date || new Date().toISOString().split('T')[0];
+
   const markdown = `---
 title: "${title.replace(/"/g, '\\"')}"
 date: "${postDate}"
@@ -53,7 +60,7 @@ ${content}`;
   const filePath = `content/blog/${slug}.md`;
   const encodedContent = btoa(unescape(encodeURIComponent(markdown)));
 
-  // 5. Check if file already exists (to get its SHA for update)
+  // Check if file already exists (needed to get SHA for updates)
   let existingSha: string | undefined;
   try {
     const checkRes = await fetch(
@@ -71,10 +78,9 @@ ${content}`;
       existingSha = existing.sha;
     }
   } catch {
-    // File doesn't exist yet — that's fine
+    // File doesn't exist yet — fine
   }
 
-  // 6. Commit the file to GitHub
   const commitRes = await fetch(
     `https://api.github.com/repos/${GITHUB_REPO}/contents/${filePath}`,
     {
@@ -128,7 +134,6 @@ export async function DELETE(req: NextRequest) {
 
   const filePath = `content/blog/${slug}.md`;
 
-  // Get the file SHA (required by GitHub API to delete)
   const checkRes = await fetch(
     `https://api.github.com/repos/${GITHUB_REPO}/contents/${filePath}?ref=${GITHUB_BRANCH}`,
     {
