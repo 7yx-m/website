@@ -6,8 +6,8 @@ import { useEffect, useState } from "react";
 const achievements = [
   "Competitive Programmer",
   "National AI Olympiad Honorable Mention",
-  "Mathematics/CS Enthusiast",
-  "Gandaki Boarding School Alum",
+  "Student Developer",
+  "Gandaki Boarding School Student",
 ];
 
 export const Hero = () => {
@@ -40,23 +40,23 @@ export const Hero = () => {
   }, [currentText, isDeleting, achievementIndex, typingSpeed]);
 
   return (
-    <section className="min-h-screen flex flex-col justify-center px-8 md:px-24 bg-obsidian border-b border-slate-gray/30">
+    <section className="min-h-screen flex flex-col justify-center bg-obsidian border-b border-slate-gray/30">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, ease: "easeOut" }}
-        className="max-w-4xl"
+        className="content-container"
       >
-        <div className="flex flex-col-reverse md:flex-row gap-12 items-start md:items-center justify-between mb-8">
+        <div className="flex flex-col-reverse md:flex-row gap-sys-md items-start md:items-center justify-between mb-sys-md">
           <div className="flex-1">
-            <div className="flex items-center gap-3 mb-4">
+            <div className="flex items-center gap-sys-xs mb-sys-xs">
               <div className="w-2 h-2 rounded-full bg-pure-white animate-pulse" />
               <span className="text-sm font-mono tracking-widest text-slate-gray uppercase">
                 System Initialization... [SUCCESS]
               </span>
             </div>
 
-            <h1 className="text-5xl md:text-8xl font-bold mb-6 tracking-tighter">
+            <h1 className="text-5xl md:text-8xl font-bold mb-sys-sm tracking-tighter">
               NEEKSON<br />
               <span className="text-slate-gray">SHRESTHA</span>
             </h1>
@@ -65,7 +65,6 @@ export const Hero = () => {
           <div className="relative group">
             <div className="absolute -inset-1 bg-pure-white/20 rounded-full blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
             <div className="relative w-32 h-32 md:w-48 md:h-48 rounded-full border-2 border-slate-gray/30 overflow-hidden bg-dim-gray">
-              {/* Profile Image - Replace 'profile.jpg' with your actual file name */}
               <img 
                 src="/images/profile.jpg" 
                 alt="Neekson Shrestha" 
@@ -78,7 +77,7 @@ export const Hero = () => {
           </div>
         </div>
 
-        <div className="h-12 flex items-center">
+        <div className="h-12 flex items-center mb-sys-md">
           <span className="text-xl md:text-2xl font-mono text-pure-white/80">
             {"> "}
             {currentText}
@@ -86,13 +85,13 @@ export const Hero = () => {
           </span>
         </div>
 
-        <div className="mt-16 grid grid-cols-1 md:grid-cols-2 gap-8 border-t border-slate-gray/30 pt-8">
+        <div className="mt-sys-lg grid grid-cols-1 md:grid-cols-2 gap-sys-md border-t border-slate-gray/30 pt-sys-md">
           <div>
-            <p className="text-sm text-slate-gray mb-2 uppercase tracking-widest font-mono">Current Status</p>
-            <p className="text-pure-white/60">Executing high-performance algorithms and developing neural architectures.</p>
+            <p className="text-sm text-slate-gray mb-sys-xs uppercase tracking-widest font-mono">Current Status</p>
+            <p className="text-pure-white/60">Building high-performance tools and exploring neural networks.</p>
           </div>
           <div className="flex flex-col md:items-end">
-            <p className="text-sm text-slate-gray mb-2 uppercase tracking-widest font-mono">Location</p>
+            <p className="text-sm text-slate-gray mb-sys-xs uppercase tracking-widest font-mono">Location</p>
             <p className="text-pure-white/60">Pokhara, Nepal // [28.2096° N, 83.9856° E]</p>
           </div>
         </div>

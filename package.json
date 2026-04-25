@@ -4,10 +4,11 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "prebuild": "node scripts/sanitize.js",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "pages:build": "next build && npx @cloudflare/next-on-pages",
+    "pages:build": "npm run prebuild && next build && npx @cloudflare/next-on-pages",
     "pages:deploy": "npm run pages:build && wrangler pages deploy .vercel/output/static"
   },
   "dependencies": {
@@ -19,7 +20,10 @@
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-markdown": "^10.1.0",
+    "rehype-highlight": "^7.0.2",
+    "rehype-katex": "^7.0.1",
     "remark-gfm": "^4.0.1",
+    "remark-math": "^6.0.0",
     "tailwind-merge": "^3.5.0"
   },
   "devDependencies": {

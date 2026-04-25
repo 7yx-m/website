@@ -8,6 +8,13 @@
   --color-border-subtle: #333333;
   
   --font-jetbrains-mono: var(--font-jetbrains-mono);
+
+  /* Strict Spacing Scale (8px base) */
+  --spacing-sys-xs: 0.5rem;   /* 8px */
+  --spacing-sys-sm: 1rem;     /* 16px */
+  --spacing-sys-md: 2rem;     /* 32px */
+  --spacing-sys-lg: 4rem;     /* 64px */
+  --spacing-sys-xl: 8rem;     /* 128px */
 }
 
 :root {
@@ -20,6 +27,7 @@ body {
   color: var(--foreground);
   font-family: var(--font-jetbrains-mono), monospace;
   cursor: crosshair;
+  line-height: 1.6; /* Standardized vertical rhythm */
 }
 
 @layer base {
@@ -27,6 +35,24 @@ body {
     @apply border-border-subtle;
   }
 }
+
+/* Layout System Utility */
+.content-container {
+  @apply max-w-5xl mx-auto px-6 md:px-12 lg:px-24 w-full;
+}
+
+.content-container-wide {
+  @apply max-w-7xl mx-auto px-6 md:px-12 w-full;
+}
+
+.section-padding {
+  @apply py-sys-lg md:py-sys-xl;
+}
+
+/* Visual Debug Mode (Uncomment to use) */
+/* 
+* { outline: 1px solid rgba(255,0,0,0.2) !important; } 
+*/
 
 /* Prose styles for Markdown */
 .prose h1 { @apply text-3xl font-bold mb-6 mt-12 uppercase tracking-tighter; }
@@ -56,4 +82,55 @@ body {
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #333333;
+}
+
+@keyframes flicker {
+  0% { opacity: 0.97; }
+  5% { opacity: 0.95; }
+  10% { opacity: 0.9; }
+  15% { opacity: 0.95; }
+  20% { opacity: 0.98; }
+  25% { opacity: 0.95; }
+  30% { opacity: 0.9; }
+  35% { opacity: 0.95; }
+  40% { opacity: 0.98; }
+  45% { opacity: 0.95; }
+  50% { opacity: 0.9; }
+  55% { opacity: 0.95; }
+  60% { opacity: 0.98; }
+  65% { opacity: 0.95; }
+  70% { opacity: 0.9; }
+  75% { opacity: 0.95; }
+  80% { opacity: 0.98; }
+  85% { opacity: 0.95; }
+  90% { opacity: 0.9; }
+  95% { opacity: 0.95; }
+  100% { opacity: 0.98; }
+}
+
+@keyframes scanline {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100%); }
+}
+
+.terminal-flicker {
+  animation: flicker 0.15s infinite;
+}
+
+.scanline {
+  width: 100%;
+  height: 100px;
+  z-index: 100;
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.03) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  opacity: 0.1;
+  position: fixed;
+  bottom: 100%;
+  left: 0;
+  pointer-events: none;
+  animation: scanline 8s linear infinite;
 }

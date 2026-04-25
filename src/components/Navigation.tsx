@@ -2,6 +2,7 @@
 
 import { Terminal, Box, FileText, Camera, User } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useNavigation } from "@/contexts/NavigationContext";
 
 const navItems = [
   { id: "hero", icon: <Terminal className="w-4 h-4" />, label: "home" },
@@ -13,6 +14,7 @@ const navItems = [
 
 export const Navigation = () => {
   const [active, setActive] = useState("hero");
+  const { navigate } = useNavigation();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -31,13 +33,13 @@ export const Navigation = () => {
   }, []);
 
   return (
-    <nav className="fixed bottom-12 left-1/2 -translate-x-1/2 z-50 px-6 py-4 bg-obsidian/80 backdrop-blur-md border border-slate-gray/30 rounded-full shadow-[0_0_30px_rgba(0,0,0,0.5)]">
-      <ul className="flex items-center gap-8">
+    <nav className="fixed bottom-12 left-1/2 -translate-x-1/2 z-50 px-sys-sm py-4 bg-obsidian/80 backdrop-blur-md border border-slate-gray/30 rounded-full shadow-[0_0_30px_rgba(0,0,0,0.5)]">
+      <ul className="flex items-center gap-sys-md">
         {navItems.map((item) => (
           <li key={item.id} className="relative group">
             <a
               href={`#${item.id}`}
-              className={`flex flex-col items-center gap-2 transition-colors ${active === item.id ? 'text-pure-white' : 'text-slate-gray hover:text-pure-white/80'}`}
+              className={`flex flex-col items-center gap-sys-xs transition-colors ${active === item.id ? 'text-pure-white' : 'text-slate-gray hover:text-pure-white/80'}`}
               onClick={(e) => {
                 e.preventDefault();
                 document.getElementById(item.id)?.scrollIntoView({ behavior: 'smooth' });
@@ -46,7 +48,7 @@ export const Navigation = () => {
               <div className={`p-2 rounded-lg transition-all ${active === item.id ? 'bg-white/10' : 'bg-transparent'}`}>
                 {item.icon}
               </div>
-              
+
               {/* Tooltip-like Label */}
               <span className="absolute -top-10 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-dim-gray px-3 py-1 rounded text-[10px] font-mono uppercase tracking-widest border border-slate-gray/40 pointer-events-none">
                 {item.label}
