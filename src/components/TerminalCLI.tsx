@@ -95,17 +95,14 @@ export const TerminalCLI = () => {
           body: JSON.stringify({ password: rawInput }),
         });
         
-        const contentType = res.headers.get('content-type');
-        if (contentType && contentType.includes('application/json')) {
-          const data = await res.json();
-          if (res.ok) {
-            setIsAdmin(true);
-            setHistory(prev => [...prev, '******', 'ACCESS GRANTED. WELCOME ADMIN.', 'Type "newpost" or "uploadphoto" to manage content.']);
-          } else {
-            setHistory(prev => [...prev, '******', `ERROR: ${data.error || 'UNSPECIFIED_FAILURE'}`]);
-          }
+        const data = await res.json().catch(() => null);
+
+        if (res.ok && data) {
+          setIsAdmin(true);
+          setHistory(prev => [...prev, '******', 'ACCESS GRANTED. WELCOME ADMIN.', 'Type "newpost" or "uploadphoto" to manage content.']);
         } else {
-          setHistory(prev => [...prev, '******', `ERROR: SERVER_ERROR // STATUS: ${res.status}`]);
+          const errorMsg = data?.error || `HTTP_ERROR: ${res.status}`;
+          setHistory(prev => [...prev, '******', `ERROR: ${errorMsg}`]);
         }
       } catch (err) {
         setHistory(prev => [...prev, '******', 'ERROR: NETWORK_FAILURE // API_UNREACHABLE']);

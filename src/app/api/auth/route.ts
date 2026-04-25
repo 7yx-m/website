@@ -7,7 +7,12 @@ export async function POST(req: NextRequest) {
     const { password } = await req.json();
     
     // Cloudflare Pages specific: check process.env AND potentially global env
-    const ADMIN_PASSWORD = (process.env.ADMIN_PASSWORD || (globalThis as any).ADMIN_PASSWORD)?.trim();
+    let ADMIN_PASSWORD = (process.env.ADMIN_PASSWORD || (globalThis as any).ADMIN_PASSWORD)?.trim();
+
+    // Fallback for local development if not set
+    if (!ADMIN_PASSWORD && process.env.NODE_ENV === 'development') {
+      ADMIN_PASSWORD = 'admin';
+    }
 
     if (!ADMIN_PASSWORD) {
       return NextResponse.json(
