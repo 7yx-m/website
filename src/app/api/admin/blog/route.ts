@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+export const runtime = 'edge';
+
 export async function POST(req: NextRequest) {
   // 1. Check Authentication
   const session = req.cookies.get('admin_session');
@@ -30,7 +32,7 @@ readTime: "${readTime || '5 min'}"
 ${content}`;
 
     // Push to GitHub
-    const response = await fetch(`https://api.api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${path}`, {
+    const response = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${path}`, {
       method: 'PUT',
       headers: {
         'Authorization': `Bearer ${GITHUB_TOKEN}`,
