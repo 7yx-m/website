@@ -1,22 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-export const runtime = 'edge';
-
 export async function POST(req: NextRequest) {
   try {
     const { password } = await req.json();
-    
-    // Cloudflare Pages specific: check process.env AND potentially global env
-    let ADMIN_PASSWORD = (process.env.ADMIN_PASSWORD || (globalThis as any).ADMIN_PASSWORD)?.trim();
-
-    // Fallback for local development if not set
-    if (!ADMIN_PASSWORD && process.env.NODE_ENV === 'development') {
-      ADMIN_PASSWORD = 'admin';
-    }
+    const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 
     if (!ADMIN_PASSWORD) {
+      console.error('ADMIN_PASSWORD environment variable is not set.');
       return NextResponse.json(
-        { error: 'CONFIG_ERROR: ADMIN_PASSWORD_NOT_SET' },
+        { error: 'SERVER_CONFIGURATION_ERROR' },
         { status: 500 }
       );
     }
@@ -28,25 +20,22 @@ export async function POST(req: NextRequest) {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
-        maxAge: 60 * 60 * 24,
+        maxAge: 60 * 60 * 24, // 24 hours
         path: '/',
       });
 
       return response;
     }
 
-    return NextResponse.json({ error: 'AUTH_ERROR: INVALID_KEY' }, { status: 401 });
+    return NextResponse.json({ error: 'INVALID_ACCESS_KEY' }, { status: 401 });
   } catch (e) {
-    return NextResponse.json({ error: 'SYSTEM_ERROR: INVALID_REQUEST' }, { status: 400 });
+    return NextResponse.json({ error: 'MALFORMED_REQUEST' }, { status: 400 });
   }
 }
 
 export async function GET(req: NextRequest) {
   const session = req.cookies.get('admin_session');
-  if (session?.value === 'true') {
-    return NextResponse.json({ authenticated: true });
-  }
-  return NextResponse.json({ authenticated: false });
+  return NextResponse.json({ authenticated: session?.value === 'true' });
 }
 
 export async function DELETE() {
