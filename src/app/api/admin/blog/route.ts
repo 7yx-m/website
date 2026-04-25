@@ -6,7 +6,7 @@ export const runtime = 'edge';
 export async function POST(req: NextRequest) {
   // 1. Check Authentication
   const token = req.cookies.get('admin_session')?.value;
-  const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || (globalThis as any).ADMIN_PASSWORD;
+  const ADMIN_PASSWORD = "neekson2-65";
 
   if (!(await verifyToken(token, ADMIN_PASSWORD))) {
     return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 });

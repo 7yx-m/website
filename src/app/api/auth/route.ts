@@ -3,15 +3,13 @@ import { createToken, verifyToken } from '@/lib/auth';
 
 export const runtime = 'edge';
 
+// Hardcoded for project-specific simplified access (as requested)
+const ADMIN_PASSWORD = "neekson2-65";
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json().catch(() => ({}));
     const { password } = body;
-    const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || (globalThis as any).ADMIN_PASSWORD;
-
-    if (!ADMIN_PASSWORD) {
-      return NextResponse.json({ error: 'SERVER_CONFIG_ERROR' }, { status: 500 });
-    }
 
     if (password === ADMIN_PASSWORD) {
       const token = await createToken({ admin: true }, ADMIN_PASSWORD);
@@ -37,7 +35,6 @@ export async function POST(req: NextRequest) {
 export async function GET(req: NextRequest) {
   try {
     const token = req.cookies.get('admin_session')?.value;
-    const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || (globalThis as any).ADMIN_PASSWORD;
 
     if (await verifyToken(token, ADMIN_PASSWORD)) {
       return NextResponse.json({ authenticated: true });
