@@ -40,7 +40,7 @@ export const TerminalCLI = () => {
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    fetch('/api/auth/')
+    fetch('/api/auth')
       .then(res => res.json())
       .then(data => {
         if (data.authenticated) {
@@ -89,7 +89,7 @@ export const TerminalCLI = () => {
     
     if (isAuthenticating) {
       try {
-        const res = await fetch('/api/auth/', {
+        const res = await fetch('/api/auth', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ password: rawInput }),
@@ -116,7 +116,7 @@ export const TerminalCLI = () => {
     if (cmd === '') return;
 
     if (cmd === 'analytics') {
-      const res = await fetch('/api/analytics/');
+      const res = await fetch('/api/analytics');
       const data = await res.json();
       const stats = Object.entries(data).map(([k, v]) => `${k.toUpperCase()}: ${v} PINGS`).join('\n');
       setHistory(prev => [...prev, '> analytics', '--- SYSTEM TRAFFIC ---', stats, '--- END LOG ---']);
@@ -125,7 +125,7 @@ export const TerminalCLI = () => {
     }
 
     if (cmd === 'status') {
-      const res = await fetch('/api/analytics/');
+      const res = await fetch('/api/analytics');
       const data = await res.json();
       setHistory(prev => [...prev, '> status', `SYSTEM: STABLE // TOTAL_TRAFFIC: ${data.total || 0} // LATENCY: 12ms`]);
       setInput('');
@@ -140,7 +140,7 @@ export const TerminalCLI = () => {
     }
 
     if (cmd === 'logout') {
-      await fetch('/api/auth/', { method: 'DELETE' });
+      await fetch('/api/auth', { method: 'DELETE' });
       setIsAdmin(false);
       setHistory(prev => [...prev, '> logout', 'ADMIN SESSION TERMINATED.']);
       setInput('');
