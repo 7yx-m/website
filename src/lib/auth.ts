@@ -1,9 +1,11 @@
+import { Buffer } from 'buffer';
+
 /**
  * Secure JWT verification using Web Crypto API (Native to Cloudflare Edge)
  */
 
 const base64UrlEncode = (arr: Uint8Array) => {
-  return btoa(String.fromCharCode(...arr))
+  return Buffer.from(arr).toString('base64')
     .replace(/\+/g, '-')
     .replace(/\//g, '_')
     .replace(/=+$/, '');
@@ -11,11 +13,7 @@ const base64UrlEncode = (arr: Uint8Array) => {
 
 const base64UrlDecode = (str: string) => {
   str = str.replace(/-/g, '+').replace(/_/g, '/');
-  while (str.length % 4) str += '=';
-  const bin = atob(str);
-  const arr = new Uint8Array(bin.length);
-  for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
-  return arr;
+  return new Uint8Array(Buffer.from(str, 'base64'));
 };
 
 export const getSecretKey = async (secret: string) => {
@@ -30,22 +28,26 @@ export const getSecretKey = async (secret: string) => {
 };
 
 export const createToken = async (payload: any, secret: string) => {
-  const header = { alg: 'HS256', typ: 'JWT' };
-  const headerStr = base64UrlEncode(new TextEncoder().encode(JSON.stringify(header)));
-  const payloadStr = base64UrlEncode(new TextEncoder().encode(JSON.stringify({
-    ...payload,
-    exp: Math.floor(Date.now() / 1000) + (60 * 60 * 24) // 24 hours
-  })));
+  try {
+    const header = { alg: 'HS256', typ: 'JWT' };
+    const headerStr = base64UrlEncode(new TextEncoder().encode(JSON.stringify(header)));
+    const payloadStr = base64UrlEncode(new TextEncoder().encode(JSON.stringify({
+      ...payload,
+      exp: Math.floor(Date.now() / 1000) + (60 * 60 * 24) // 24 hours
+    })));
 
-  const key = await getSecretKey(secret);
-  const signatureBuffer = await crypto.subtle.sign(
-    'HMAC',
-    key,
-    new TextEncoder().encode(`${headerStr}.${payloadStr}`)
-  );
-  
-  const signatureStr = base64UrlEncode(new Uint8Array(signatureBuffer));
-  return `${headerStr}.${payloadStr}.${signatureStr}`;
+    const key = await getSecretKey(secret);
+    const signatureBuffer = await crypto.subtle.sign(
+      'HMAC',
+      key,
+      new TextEncoder().encode(`${headerStr}.${payloadStr}`)
+    );
+    
+    const signatureStr = base64UrlEncode(new Uint8Array(signatureBuffer));
+    return `${headerStr}.${payloadStr}.${signatureStr}`;
+  } catch (e) {
+    throw new Error(`Token creation failed: ${e instanceof Error ? e.message : String(e)}`);
+  }
 };
 
 export const verifyToken = async (token: string | undefined, secret: string | undefined) => {
@@ -68,9 +70,11 @@ export const verifyToken = async (token: string | undefined, secret: string | un
     
     if (!isValid) return false;
     
-    const payload = JSON.parse(new TextDecoder().decode(base64UrlDecode(payloadStr)));
+    const payloadJson = Buffer.from(base64UrlDecode(payloadStr)).toString();
+    const payload = JSON.parse(payloadJson);
     return payload.exp > Math.floor(Date.now() / 1000);
   } catch (e) {
+    console.error('JWT Verification Error:', e);
     return false;
   }
 };

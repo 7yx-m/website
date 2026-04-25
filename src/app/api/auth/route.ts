@@ -28,7 +28,10 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ error: 'INVALID_KEY' }, { status: 401 });
   } catch (e) {
-    return NextResponse.json({ error: 'AUTH_FAILED' }, { status: 500 });
+    return NextResponse.json({ 
+      error: 'AUTH_FAILED', 
+      details: e instanceof Error ? e.message : String(e) 
+    }, { status: 500 });
   }
 }
 

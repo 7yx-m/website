@@ -101,7 +101,7 @@ export const TerminalCLI = () => {
           setIsAdmin(true);
           setHistory(prev => [...prev, '******', 'ACCESS GRANTED. WELCOME ADMIN.', 'Type "newpost" or "uploadphoto" to manage content.']);
         } else {
-          const errorMsg = data?.error || `HTTP_ERROR: ${res.status}`;
+          const errorMsg = data?.details ? `${data.error}: ${data.details}` : (data?.error || `HTTP_ERROR: ${res.status}`);
           setHistory(prev => [...prev, '******', `ERROR: ${errorMsg}`]);
         }
       } catch (err) {
