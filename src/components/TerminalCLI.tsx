@@ -103,7 +103,8 @@ export const TerminalCLI = () => {
           setHistory(prev => [...prev, '******', 'ACCESS GRANTED. WELCOME ADMIN.', 'Type "newpost" or "uploadphoto" to manage content.']);
         } else {
           const errorMsg = data?.details ? `${data.error}: ${data.details}` : (data?.error || `HTTP_ERROR: ${res.status}`);
-          setHistory(prev => [...prev, '******', `ERROR: ${errorMsg}`]);
+          const debugInfo = data?.received && data?.expected ? ` [Received: ${data.received}, Expected: ${data.expected}]` : '';
+          setHistory(prev => [...prev, '******', `ERROR: ${errorMsg}${debugInfo}`]);
         }
       } catch (err) {
         setHistory(prev => [...prev, '******', 'ERROR: NETWORK_FAILURE // API_UNREACHABLE']);

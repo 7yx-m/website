@@ -28,7 +28,11 @@ export async function POST(req: NextRequest) {
       return response;
     }
 
-    return NextResponse.json({ error: 'INVALID_KEY' }, { status: 401 });
+    return NextResponse.json({ 
+      error: 'INVALID_KEY',
+      received: password ? `"${password}"` : 'null',
+      expected: `"${ADMIN_PASSWORD}"`
+    }, { status: 401 });
   } catch (e: any) {
     // Return the actual error message to help us debug
     return NextResponse.json({ 
