@@ -78,29 +78,37 @@ export async function POST(req: NextRequest) {
     // File doesn't exist yet — fine
   }
 
-  const uploadRes = await fetch(
-    `https://api.github.com/repos/${GITHUB_REPO}/contents/${imagePath}`,
-    {
-      method: 'PUT',
-      headers: {
-        Authorization: `Bearer ${GITHUB_TOKEN}`,
-        Accept: 'application/vnd.github+json',
-        'Content-Type': 'application/json',
-        'X-GitHub-Api-Version': '2022-11-28',
-      },
-      body: JSON.stringify({
-        message: `camera: upload new photo "${title}"`,
-        content: base64Content,
-        branch: GITHUB_BRANCH,
-        ...(existingSha ? { sha: existingSha } : {}),
-      }),
-    }
-  );
+  let uploadRes: Response;
+  try {
+    uploadRes = await fetch(
+      `https://api.github.com/repos/${GITHUB_REPO}/contents/${imagePath}`,
+      {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${GITHUB_TOKEN}`,
+          Accept: 'application/vnd.github+json',
+          'Content-Type': 'application/json',
+          'X-GitHub-Api-Version': '2022-11-28',
+        },
+        body: JSON.stringify({
+          message: `camera: upload new photo "${title}"`,
+          content: base64Content,
+          branch: GITHUB_BRANCH,
+          ...(existingSha ? { sha: existingSha } : {}),
+        }),
+      }
+    );
+  } catch (err) {
+    return NextResponse.json(
+      { error: 'GITHUB_UNREACHABLE', details: err instanceof Error ? err.message : String(err) },
+      { status: 502 }
+    );
+  }
 
   if (!uploadRes.ok) {
     const err = await uploadRes.json().catch(() => ({})) as { message?: string };
     return NextResponse.json(
-      { error: 'GitHub Image Upload Failed', details: err.message || `HTTP ${uploadRes.status}` },
+      { error: 'GITHUB_ERROR', details: err.message || `HTTP ${uploadRes.status}` },
       { status: 502 }
     );
   }

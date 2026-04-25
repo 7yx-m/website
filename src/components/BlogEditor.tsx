@@ -39,7 +39,8 @@ export const BlogEditor = ({ onClose, onSuccess }: BlogEditorProps) => {
       if (res.ok) {
         onSuccess(data.slug);
       } else {
-        setError(`Status ${res.status}: ${data.error || 'Unknown error'}`);
+        const message = data.details ? `${data.error} — ${data.details}` : (data.error || 'Unknown error');
+        setError(`Status ${res.status}: ${message}`);
       }
     } catch (e) {
       setError('Network error. Check your connection.');
