@@ -34,12 +34,12 @@ export const BlogEditor = ({ onClose, onSuccess }: BlogEditorProps) => {
         body: JSON.stringify({ title, excerpt, content, readTime }),
       });
 
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
 
       if (res.ok) {
         onSuccess(data.slug);
       } else {
-        setError(data.error || 'Failed to publish post.');
+        setError(`Status ${res.status}: ${data.error || 'Unknown error'}`);
       }
     } catch (e) {
       setError('Network error. Check your connection.');
