@@ -1,13 +1,44 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { verifySession } from '@/lib/auth';
 
 export const runtime = 'edge';
+
+const ADMIN_PASSWORD = "neekson2-65";
+
+async function getSignature(data: string) {
+  const encoder = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    'raw',
+    encoder.encode(ADMIN_PASSWORD),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign']
+  );
+  const signature = await crypto.subtle.sign('HMAC', key, encoder.encode(data));
+  return Array.from(new Uint8Array(signature))
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('');
+}
 
 export async function POST(req: NextRequest) {
   // 1. Check Authentication
   const session = req.cookies.get('admin_session')?.value;
+  let isAuthenticated = false;
 
-  if (!(await verifySession(session))) {
+  if (session) {
+    try {
+      const [expiry, sig] = session.split(':');
+      if (expiry && sig && Date.now() <= parseInt(expiry)) {
+        const expectedSig = await getSignature(expiry);
+        if (sig === expectedSig) {
+          isAuthenticated = true;
+        }
+      }
+    } catch (e) {
+      // Auth failed
+    }
+  }
+
+  if (!isAuthenticated) {
     return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 });
   }
 
