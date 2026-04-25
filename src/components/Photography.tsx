@@ -1,10 +1,10 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Camera } from "lucide-react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 
-const photos = [
+const initialPhotos = [
   { id: 1, height: "h-64", title: "That One time in Kathmandu", src: "/images/photo1.jpg" },
   { id: 2, height: "h-96", title: "Gandaki Boarding School", src: "/images/photo2.jpg" },
   { id: 3, height: "h-80", title: "Sleepless Sessions", src: "/images/photo3.jpg" },
@@ -14,6 +14,20 @@ const photos = [
 ];
 
 export const Photography = () => {
+  const [photos, setPhotos] = useState(initialPhotos);
+
+  useEffect(() => {
+    fetch('/photos.json', { cache: 'no-store' })
+      .then((res) => res.json())
+      .then((data: { title: string; src: string; height: string }[]) => {
+        const newPhotos = data.filter(
+          (newP) => !initialPhotos.find((init) => init.src === newP.src)
+        );
+        setPhotos((prev) => [...prev, ...newPhotos]);
+      })
+      .catch(() => {});
+  }, []);
+
   return (
     <section id="photography" className="section-padding w-full bg-obsidian border-b border-slate-gray/30 overflow-hidden">
       <div className="content-container-wide">
@@ -32,7 +46,7 @@ export const Photography = () => {
         <div className="columns-1 md:columns-2 lg:columns-3 gap-6 space-y-6">
           {photos.map((photo, index) => (
             <motion.div
-              key={photo.id}
+              key={photo.src}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.05, duration: 0.8 }}
@@ -59,7 +73,7 @@ export const Photography = () => {
                     {photo.title}
                   </span>
                   <span className="text-[9px] font-mono text-slate-gray">
-                    [0{photo.id}_IMG]
+                    [{(photo as any).id || "NEW"}_IMG]
                   </span>
                 </div>
               </div>

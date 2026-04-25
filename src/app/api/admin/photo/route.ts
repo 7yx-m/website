@@ -113,6 +113,56 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // After uploading, update manifest
+  try {
+    const manifestPath = 'public/photos.json';
+    let manifest: { title: string; src: string; height: string }[] = [];
+    let manifestSha: string | undefined;
+
+    const manifestRes = await fetch(
+      `https://api.github.com/repos/${GITHUB_REPO}/contents/${manifestPath}?ref=${GITHUB_BRANCH}`,
+      {
+        headers: {
+          Authorization: `Bearer ${GITHUB_TOKEN}`,
+          Accept: 'application/vnd.github+json',
+          'X-GitHub-Api-Version': '2022-11-28',
+        },
+      }
+    );
+
+    if (manifestRes.ok) {
+      const data = await manifestRes.json();
+      manifestSha = data.sha;
+      const content = atob(data.content);
+      manifest = JSON.parse(content);
+    }
+
+    const newSrc = `/images/${filename}`;
+    if (!manifest.find((p) => p.src === newSrc)) {
+      const heights = ['h-64', 'h-80', 'h-96'];
+      const height = heights[manifest.length % 3];
+      manifest.push({ title, src: newSrc, height });
+
+      await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${manifestPath}`, {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${GITHUB_TOKEN}`,
+          Accept: 'application/vnd.github+json',
+          'Content-Type': 'application/json',
+          'X-GitHub-Api-Version': '2022-11-28',
+        },
+        body: JSON.stringify({
+          message: `camera: add photo "${title}" to manifest`,
+          content: btoa(JSON.stringify(manifest, null, 2)),
+          branch: GITHUB_BRANCH,
+          ...(manifestSha ? { sha: manifestSha } : {}),
+        }),
+      });
+    }
+  } catch (e) {
+    console.error('Failed to update photos.json:', e);
+  }
+
   return NextResponse.json({
     success: true,
     path: `/images/${filename}`,
