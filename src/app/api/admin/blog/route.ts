@@ -14,9 +14,9 @@ function isAuthenticated(req: NextRequest): boolean {
   return Date.now() <= expiry;
 }
 
-// Edge-safe ArrayBuffer → base64
-function arrayBufferToBase64(buffer: ArrayBuffer): string {
-  const bytes = new Uint8Array(buffer);
+// Edge-safe string → base64
+function stringToBase64(str: string): string {
+  const bytes = new TextEncoder().encode(str);
   let binary = '';
   for (const byte of bytes) {
     binary += String.fromCharCode(byte);
@@ -33,21 +33,20 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'SERVER_MISCONFIGURED', details: 'GITHUB_TOKEN not set' }, { status: 500 });
   }
 
-  let formData: FormData;
+  let body: { title?: string; excerpt?: string; content?: string; readTime?: string };
   try {
-    formData = await req.formData();
+    body = await req.json();
   } catch {
-    return NextResponse.json({ error: 'PARSE_ERROR', details: 'Could not parse form data' }, { status: 400 });
+    return NextResponse.json({ error: 'PARSE_ERROR', details: 'Could not parse JSON body' }, { status: 400 });
   }
 
-  const file = formData.get('file') as File | null;
-  const title = formData.get('title') as string | null;
+  const { title, excerpt = '', content, readTime = '5 min read' } = body;
 
-  if (!file || !title) {
-    return NextResponse.json({ error: 'MISSING_FIELDS', details: 'file and title are required' }, { status: 400 });
+  if (!title || !content) {
+    return NextResponse.json({ error: 'MISSING_FIELDS', details: 'title and content are required' }, { status: 400 });
   }
 
-  // Generate filename from title
+  // Generate slug from title
   const slug = title
     .toLowerCase()
     .trim()
@@ -55,19 +54,27 @@ export async function POST(req: NextRequest) {
     .replace(/[\s_-]+/g, '-')
     .replace(/^-+|-+$/g, '');
 
-  const extension = file.name.split('.').pop()?.toLowerCase() || 'jpg';
-  const filename = `${slug}.${extension}`;
-  const imagePath = `public/images/${filename}`;
+  // Format date as YYYY.MM.DD to match existing posts
+  const now = new Date();
+  const date = `${now.getFullYear()}.${String(now.getMonth() + 1).padStart(2, '0')}.${String(now.getDate()).padStart(2, '0')}`;
 
-  // Convert file to base64 (Edge-safe — no Buffer)
-  const arrayBuffer = await file.arrayBuffer();
-  const base64Content = arrayBufferToBase64(arrayBuffer);
+  // Build markdown file with frontmatter
+  const markdown = `---
+title: "${title.replace(/"/g, '\\"')}"
+date: "${date}"
+excerpt: "${excerpt.replace(/"/g, '\\"')}"
+readTime: "${readTime}"
+---
+${content}`;
+
+  const filePath = `content/blog/${slug}.md`;
+  const base64Content = stringToBase64(markdown);
 
   // Check if file already exists (need SHA to overwrite)
   let existingSha: string | undefined;
   try {
     const checkRes = await fetch(
-      `https://api.github.com/repos/${GITHUB_REPO}/contents/${imagePath}?ref=${GITHUB_BRANCH}`,
+      `https://api.github.com/repos/${GITHUB_REPO}/contents/${filePath}?ref=${GITHUB_BRANCH}`,
       {
         headers: {
           Authorization: `Bearer ${GITHUB_TOKEN}`,
@@ -85,7 +92,7 @@ export async function POST(req: NextRequest) {
   }
 
   const uploadRes = await fetch(
-    `https://api.github.com/repos/${GITHUB_REPO}/contents/${imagePath}`,
+    `https://api.github.com/repos/${GITHUB_REPO}/contents/${filePath}`,
     {
       method: 'PUT',
       headers: {
@@ -95,7 +102,7 @@ export async function POST(req: NextRequest) {
         'X-GitHub-Api-Version': '2022-11-28',
       },
       body: JSON.stringify({
-        message: `camera: upload photo "${title}"`,
+        message: `blog: publish "${title}"`,
         content: base64Content,
         branch: GITHUB_BRANCH,
         ...(existingSha ? { sha: existingSha } : {}),
@@ -113,7 +120,7 @@ export async function POST(req: NextRequest) {
 
   return NextResponse.json({
     success: true,
-    path: `/images/${filename}`,
-    message: 'Photo uploaded. It will appear after the next build.',
+    slug,
+    message: 'Blog post published. It will appear after the next build.',
   });
 }
