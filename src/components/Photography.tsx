@@ -4,7 +4,14 @@ import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import Image from "next/image";
 
-const initialPhotos = [
+interface Photo {
+  id?: number;
+  height: string;
+  title: string;
+  src: string;
+}
+
+const initialPhotos: Photo[] = [
   { id: 1, height: "h-64", title: "That One time in Kathmandu", src: "/images/photo1.jpg" },
   { id: 2, height: "h-96", title: "Gandaki Boarding School", src: "/images/photo2.jpg" },
   { id: 3, height: "h-80", title: "Sleepless Sessions", src: "/images/photo3.jpg" },
@@ -14,12 +21,12 @@ const initialPhotos = [
 ];
 
 export const Photography = () => {
-  const [photos, setPhotos] = useState(initialPhotos);
+  const [photos, setPhotos] = useState<Photo[]>(initialPhotos);
 
   useEffect(() => {
     fetch('/photos.json', { cache: 'no-store' })
       .then((res) => res.json())
-      .then((data: { title: string; src: string; height: string }[]) => {
+      .then((data: Photo[]) => {
         const newPhotos = data.filter(
           (newP) => !initialPhotos.find((init) => init.src === newP.src)
         );
@@ -73,7 +80,7 @@ export const Photography = () => {
                     {photo.title}
                   </span>
                   <span className="text-[9px] font-mono text-slate-gray">
-                    [{(photo as any).id || "NEW"}_IMG]
+                    [{photo.id || "NEW"}_IMG]
                   </span>
                 </div>
               </div>
