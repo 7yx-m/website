@@ -40,12 +40,17 @@ export const TerminalCLI = () => {
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    fetch('/api/auth').then(res => res.json()).then(data => {
-      if (data.authenticated) {
-        setIsAdmin(true);
-        setHistory(prev => [...prev, 'SESSION RESTORED: ADMIN ACCESS ACTIVE.']);
-      }
-    });
+    fetch('/api/auth')
+      .then(res => res.json())
+      .then(data => {
+        if (data.authenticated) {
+          setIsAdmin(true);
+          setHistory(prev => [...prev, 'SESSION RESTORED: ADMIN ACCESS ACTIVE.']);
+        }
+      })
+      .catch(() => {
+        // Silent fail on session restoration check
+      });
   }, []);
 
   useEffect(() => {
@@ -82,27 +87,32 @@ export const TerminalCLI = () => {
     const rawInput = input.trim();
     const cmd = rawInput.toLowerCase();
     
-    if (cmd === '') return;
-
     if (isAuthenticating) {
-      const res = await fetch('/api/auth', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password: rawInput }),
-      });
-      
-      const data = await res.json();
+      try {
+        const res = await fetch('/api/auth', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password: rawInput }),
+        });
+        
+        const data = await res.json();
 
-      if (res.ok) {
-        setIsAdmin(true);
-        setHistory(prev => [...prev, '******', 'ACCESS GRANTED. WELCOME ADMIN.', 'Type "newpost" or "uploadphoto" to manage content.']);
-      } else {
-        setHistory(prev => [...prev, '******', `ERROR: ${data.error || 'UNSPECIFIED_FAILURE'}`]);
+        if (res.ok) {
+          setIsAdmin(true);
+          setHistory(prev => [...prev, '******', 'ACCESS GRANTED. WELCOME ADMIN.', 'Type "newpost" or "uploadphoto" to manage content.']);
+        } else {
+          setHistory(prev => [...prev, '******', `ERROR: ${data.error || 'UNSPECIFIED_FAILURE'}`]);
+        }
+      } catch (err) {
+        setHistory(prev => [...prev, '******', 'ERROR: CONNECTION_FAILED // API_UNREACHABLE']);
+      } finally {
+        setIsAuthenticating(false);
+        setInput('');
       }
-      setIsAuthenticating(false);
-      setInput('');
       return;
     }
+
+    if (cmd === '') return;
 
     if (cmd === 'analytics') {
       const res = await fetch('/api/analytics');
@@ -249,8 +259,10 @@ export const TerminalCLI = () => {
                 
                 <div className="flex items-center justify-between p-sys-sm border-b border-pure-white/20 bg-pure-white/5">
                   <div className="flex items-center gap-sys-xs">
-                    <div className="w-2 h-2 rounded-full bg-pure-white animate-pulse" />
-                    <span className="text-[10px] uppercase tracking-[0.4em] text-pure-white">NS-OS v1.0.0 // ROOT_ACCESS</span>
+                    <div className={`w-2 h-2 rounded-full animate-pulse ${isAdmin ? 'bg-pure-white' : 'bg-pure-white/40'}`} />
+                    <span className="text-[10px] uppercase tracking-[0.4em] text-pure-white">
+                      NS-OS v1.0.0 // {isAdmin ? 'ROOT_ACCESS' : 'GUEST_ACCESS'}
+                    </span>
                   </div>
                   <button onClick={() => setIsOpen(false)} className="text-pure-white/40 hover:text-pure-white transition-colors text-sm">
                     [ CLOSE ]

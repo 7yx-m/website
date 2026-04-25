@@ -7,7 +7,7 @@ export async function POST(req: NextRequest) {
     const { password } = await req.json();
     
     // Cloudflare Pages specific: check process.env AND potentially global env
-    const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || (globalThis as any).ADMIN_PASSWORD;
+    const ADMIN_PASSWORD = (process.env.ADMIN_PASSWORD || (globalThis as any).ADMIN_PASSWORD)?.trim();
 
     if (!ADMIN_PASSWORD) {
       return NextResponse.json(
@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
       
       response.cookies.set('admin_session', 'true', {
         httpOnly: true,
-        secure: true,
+        secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
         maxAge: 60 * 60 * 24,
         path: '/',
