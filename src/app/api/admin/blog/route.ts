@@ -14,13 +14,14 @@ function isAuthenticated(req: NextRequest): boolean {
   return Date.now() <= expiry;
 }
 
-function generateSlug(title: string): string {
-  return title
-    .toLowerCase()
-    .replace(/[^a-z0-9\s-]/g, '')   // remove special chars
-    .trim()
-    .replace(/\s+/g, '-')            // spaces to hyphens
-    .replace(/-+/g, '-');            // collapse multiple hyphens
+// Edge-safe ArrayBuffer → base64
+function arrayBufferToBase64(buffer: ArrayBuffer): string {
+  const bytes = new Uint8Array(buffer);
+  let binary = '';
+  for (const byte of bytes) {
+    binary += String.fromCharCode(byte);
+  }
+  return btoa(binary);
 }
 
 export async function POST(req: NextRequest) {
@@ -32,39 +33,41 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'SERVER_MISCONFIGURED', details: 'GITHUB_TOKEN not set' }, { status: 500 });
   }
 
-  let body: { title?: string; excerpt?: string; content?: string; readTime?: string; date?: string } = {};
+  let formData: FormData;
   try {
-    body = await req.json();
+    formData = await req.formData();
   } catch {
-    return NextResponse.json({ error: 'PARSE_ERROR', details: 'Could not parse JSON body' }, { status: 400 });
+    return NextResponse.json({ error: 'PARSE_ERROR', details: 'Could not parse form data' }, { status: 400 });
   }
 
-  const { title, excerpt, content, readTime, date } = body;
+  const file = formData.get('file') as File | null;
+  const title = formData.get('title') as string | null;
 
-  if (!title || !content) {
-    return NextResponse.json({ error: 'MISSING_FIELDS', details: 'title and content are required' }, { status: 400 });
+  if (!file || !title) {
+    return NextResponse.json({ error: 'MISSING_FIELDS', details: 'file and title are required' }, { status: 400 });
   }
 
-  const slug = generateSlug(title);
-  const postDate = date || new Date().toISOString().split('T')[0];
+  // Generate filename from title
+  const slug = title
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, '')
+    .replace(/[\s_-]+/g, '-')
+    .replace(/^-+|-+$/g, '');
 
-  const markdown = `---
-title: "${title.replace(/"/g, '\\"')}"
-date: "${postDate}"
-excerpt: "${(excerpt || '').replace(/"/g, '\\"')}"
-readTime: "${readTime || '5 min read'}"
----
+  const extension = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+  const filename = `${slug}.${extension}`;
+  const imagePath = `public/images/${filename}`;
 
-${content}`;
+  // Convert file to base64 (Edge-safe — no Buffer)
+  const arrayBuffer = await file.arrayBuffer();
+  const base64Content = arrayBufferToBase64(arrayBuffer);
 
-  const filePath = `content/blog/${slug}.md`;
-  const encodedContent = btoa(unescape(encodeURIComponent(markdown)));
-
-  // Check if file already exists (needed to get SHA for updates)
+  // Check if file already exists (need SHA to overwrite)
   let existingSha: string | undefined;
   try {
     const checkRes = await fetch(
-      `https://api.github.com/repos/${GITHUB_REPO}/contents/${filePath}?ref=${GITHUB_BRANCH}`,
+      `https://api.github.com/repos/${GITHUB_REPO}/contents/${imagePath}?ref=${GITHUB_BRANCH}`,
       {
         headers: {
           Authorization: `Bearer ${GITHUB_TOKEN}`,
@@ -81,8 +84,8 @@ ${content}`;
     // File doesn't exist yet — fine
   }
 
-  const commitRes = await fetch(
-    `https://api.github.com/repos/${GITHUB_REPO}/contents/${filePath}`,
+  const uploadRes = await fetch(
+    `https://api.github.com/repos/${GITHUB_REPO}/contents/${imagePath}`,
     {
       method: 'PUT',
       headers: {
@@ -92,87 +95,25 @@ ${content}`;
         'X-GitHub-Api-Version': '2022-11-28',
       },
       body: JSON.stringify({
-        message: `blog: publish "${title}"`,
-        content: encodedContent,
+        message: `camera: upload photo "${title}"`,
+        content: base64Content,
         branch: GITHUB_BRANCH,
         ...(existingSha ? { sha: existingSha } : {}),
       }),
     }
   );
 
-  if (!commitRes.ok) {
-    const err = await commitRes.json().catch(() => ({})) as { message?: string };
+  if (!uploadRes.ok) {
+    const err = await uploadRes.json().catch(() => ({})) as { message?: string };
     return NextResponse.json(
-      { error: 'GITHUB_ERROR', details: err.message || `HTTP ${commitRes.status}` },
+      { error: 'GITHUB_ERROR', details: err.message || `HTTP ${uploadRes.status}` },
       { status: 502 }
     );
   }
 
-  return NextResponse.json({ success: true, slug, path: filePath });
-}
-
-export async function DELETE(req: NextRequest) {
-  if (!isAuthenticated(req)) {
-    return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
-  }
-
-  if (!GITHUB_TOKEN) {
-    return NextResponse.json({ error: 'SERVER_MISCONFIGURED' }, { status: 500 });
-  }
-
-  let body: { slug?: string } = {};
-  try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json({ error: 'PARSE_ERROR' }, { status: 400 });
-  }
-
-  const { slug } = body;
-  if (!slug) {
-    return NextResponse.json({ error: 'MISSING_FIELDS', details: 'slug is required' }, { status: 400 });
-  }
-
-  const filePath = `content/blog/${slug}.md`;
-
-  const checkRes = await fetch(
-    `https://api.github.com/repos/${GITHUB_REPO}/contents/${filePath}?ref=${GITHUB_BRANCH}`,
-    {
-      headers: {
-        Authorization: `Bearer ${GITHUB_TOKEN}`,
-        Accept: 'application/vnd.github+json',
-        'X-GitHub-Api-Version': '2022-11-28',
-      },
-    }
-  );
-
-  if (!checkRes.ok) {
-    return NextResponse.json({ error: 'NOT_FOUND', details: `${slug}.md does not exist` }, { status: 404 });
-  }
-
-  const { sha } = await checkRes.json() as { sha: string };
-
-  const deleteRes = await fetch(
-    `https://api.github.com/repos/${GITHUB_REPO}/contents/${filePath}`,
-    {
-      method: 'DELETE',
-      headers: {
-        Authorization: `Bearer ${GITHUB_TOKEN}`,
-        Accept: 'application/vnd.github+json',
-        'Content-Type': 'application/json',
-        'X-GitHub-Api-Version': '2022-11-28',
-      },
-      body: JSON.stringify({
-        message: `blog: delete "${slug}"`,
-        sha,
-        branch: GITHUB_BRANCH,
-      }),
-    }
-  );
-
-  if (!deleteRes.ok) {
-    const err = await deleteRes.json().catch(() => ({})) as { message?: string };
-    return NextResponse.json({ error: 'GITHUB_ERROR', details: err.message }, { status: 502 });
-  }
-
-  return NextResponse.json({ success: true });
+  return NextResponse.json({
+    success: true,
+    path: `/images/${filename}`,
+    message: 'Photo uploaded. It will appear after the next build.',
+  });
 }
