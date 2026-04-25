@@ -4,12 +4,6 @@ export const runtime = 'edge';
 
 const ADMIN_PASSWORD = "neekson2-65";
 
-async function getSignature(data: string) {
-  // Temporary simple signature - replace with proper crypto later
-  const signature = btoa(data + ADMIN_PASSWORD).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
-  return signature;
-}
-
 export async function POST(req: NextRequest) {
   // 1. Check Authentication
   const session = req.cookies.get('admin_session')?.value;
@@ -17,12 +11,9 @@ export async function POST(req: NextRequest) {
 
   if (session) {
     try {
-      const [expiry, sig] = session.split(':');
-      if (expiry && sig && Date.now() <= parseInt(expiry)) {
-        const expectedSig = await getSignature(expiry);
-        if (sig === expectedSig) {
-          isAuthenticated = true;
-        }
+      const expiry = parseInt(session);
+      if (!isNaN(expiry) && Date.now() <= expiry) {
+        isAuthenticated = true;
       }
     } catch (e) {
       // Auth failed

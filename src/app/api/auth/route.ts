@@ -4,25 +4,15 @@ export const runtime = 'edge';
 
 const ADMIN_PASSWORD = "neekson2-65";
 
-/**
- * Simple signature using base64 for Cloudflare compatibility
- */
-async function getSignature(data: string) {
-  // Temporary simple signature - replace with proper crypto later
-  const signature = btoa(data + ADMIN_PASSWORD).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
-  return signature;
-}
-
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json().catch(() => ({}));
     const { password } = body;
 
     if (password === ADMIN_PASSWORD) {
-      // Create a secure session string: "expiry:signature"
+      // Create a session token with expiry timestamp
       const expiry = Date.now() + 86400000; // 24 hours
-      const sig = await getSignature(expiry.toString());
-      const sessionValue = `${expiry}:${sig}`;
+      const sessionValue = expiry.toString();
 
       const response = NextResponse.json({ success: true });
       
@@ -53,15 +43,11 @@ export async function GET(req: NextRequest) {
     const session = req.cookies.get('admin_session')?.value;
     if (!session) return NextResponse.json({ authenticated: false });
 
-    const [expiry, sig] = session.split(':');
-    if (!expiry || !sig) return NextResponse.json({ authenticated: false });
+    const expiry = parseInt(session);
+    if (isNaN(expiry)) return NextResponse.json({ authenticated: false });
 
-    // Validate expiry and signature
-    if (Date.now() > parseInt(expiry)) return NextResponse.json({ authenticated: false });
-    
-    const expectedSig = await getSignature(expiry);
-    const isValid = sig === expectedSig;
-
+    // Validate expiry
+    const isValid = Date.now() <= expiry;
     return NextResponse.json({ authenticated: isValid });
   } catch (e) {
     return NextResponse.json({ authenticated: false });
