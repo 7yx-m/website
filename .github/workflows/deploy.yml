@@ -29,9 +29,14 @@ jobs:
       - name: Build with next-on-pages
         run: npm run pages:build
 
+      - name: Check build output
+        run: |
+          ls -la .vercel/output
+          ls -la .vercel/output/static
+
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v4
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy .vercel/output/static --project-name=website
+          command: pages deploy --project-name=website
