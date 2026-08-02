@@ -13,9 +13,9 @@ const skills = [
 const education = [
   {
     institution: "Gandaki Boarding School",
-    degree: "High School (Science & Tech Focus)",
-    grade: "Predicted GPA: A/A+",
-    status: "Ongoing",
+    degree: "High School (Computer Science)",
+    grade: "GPA: A",
+    status: "Completed",
   },
 ];
 
