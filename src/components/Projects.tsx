@@ -12,7 +12,7 @@ const projects = [
     logic: "Manual backpropagation implementation. No frameworks (TensorFlow/PyTorch). Raw matrix operations.",
     tech: ["Python", "Mathematics", "Neural Networks"],
     icon: <Brain className="w-6 h-6" />,
-    link: "https://github.com/onlynyxs/Digit-analyzer-MNIST-Dataset-", 
+    link: "https://github.com/7yx-m/Digit-analyzer-MNIST-Dataset-", 
   },
   {
     title: "Assistive Vision",
@@ -20,7 +20,7 @@ const projects = [
     logic: "OpenCV pipeline integrated with pre-trained MobileNet SSD. Optimized for real-time inference.",
     tech: ["Python", "TensorFlow", "OpenCV"],
     icon: <Cpu className="w-6 h-6" />,
-    link: "https://github.com/Selkie-the-goat/Assistive-Vision", 
+    link: "https://github.com/7yx-m/assistive-vision", 
   },
 ];
 
