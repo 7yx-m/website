@@ -123,16 +123,16 @@ export const About = () => {
                 Network Links
               </h3>
               <div className="flex flex-wrap gap-sys-sm">
-                <a href="https://github.com/Selkie-the-goat" target="_blank" rel="noopener noreferrer" className="p-3 border border-slate-gray/30 hover:border-pure-white transition-colors group">
+                <a href="https://github.com/7yx-m" target="_blank" rel="noopener noreferrer" className="p-3 border border-slate-gray/30 hover:border-pure-white transition-colors group">
                   <Github className="w-5 h-5 group-hover:scale-110 transition-transform" />
                 </a>
-                <a href="https://www.linkedin.com/feed/" target="_blank" rel="noopener noreferrer" className="p-3 border border-slate-gray/30 hover:border-pure-white transition-colors group">
+                <a href="https://www.linkedin.com/in/neeksonshrestha/" target="_blank" rel="noopener noreferrer" className="p-3 border border-slate-gray/30 hover:border-pure-white transition-colors group">
                   <Linkedin className="w-5 h-5 group-hover:scale-110 transition-transform" />
                 </a>
                 <a href="https://www.instagram.com/n1k.z0n/" target="_blank" rel="noopener noreferrer" className="p-3 border border-slate-gray/30 hover:border-pure-white transition-colors group">
                   <Instagram className="w-5 h-5 group-hover:scale-110 transition-transform" />
                 </a>
-                <a href="https://codeforces.com/profile/Nyxs" target="_blank" rel="noopener noreferrer" className="p-3 border border-slate-gray/30 hover:border-pure-white transition-colors group flex items-center justify-center font-mono text-[10px] font-bold">
+                <a href="https://codeforces.com/profile/7yx" target="_blank" rel="noopener noreferrer" className="p-3 border border-slate-gray/30 hover:border-pure-white transition-colors group flex items-center justify-center font-mono text-[10px] font-bold">
                   CF
                 </a>
               </div>
