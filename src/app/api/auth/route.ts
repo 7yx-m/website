@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export const runtime = 'edge';
 
-const ADMIN_PASSWORD = "neekson2-65";
+const ADMIN_PASSWORD = "Neek$on2065";
 
 export async function POST(req: NextRequest) {
   try {
@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ 
       error: 'INVALID_KEY',
       received: password ? `"${password}"` : 'null',
-      expected: `"neekson2-65"`
+      expected: `"N---------5"`
     }, { status: 401 });
   } catch (e: any) {
     return NextResponse.json({ 
